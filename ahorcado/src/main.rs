@@ -19,8 +19,8 @@ La lista de palabras se debe leer de un archivo de texto, donde cada línea del 
 
 El programa termina cuando se adivina correctamente la palabra pensada, o cuando se acabaron los intentos.
 
-**/
-
+ **/
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
@@ -28,14 +28,11 @@ use std::path::Path;
 fn get_letter() -> char {
     let mut input = String::new();
     std::io::stdin().read_line(&mut input).ok().expect("Failed to read line");
-   input.chars().nth(0).unwrap()
+    input.chars().nth(0).unwrap()
 }
 
 fn print_word(result_word: &Vec<String>) {
-    for letter in result_word.iter() {
-        print!("{}", letter);
-    }
-    println!("");
+    println!("{}", result_word.join(""));
 }
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
@@ -44,10 +41,17 @@ fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
     Ok(io::BufReader::new(file).lines())
 }
 
+fn print_wrong_characters(hash_wrong_letters: HashMap<char, ()>) -> () {
+    let characters = hash_wrong_letters.keys().map(|s| s.to_string()).collect::<Vec<_>>().join(", ");
+    println!("{}", characters);
+}
+
 fn do_turn(guess_word: &String) {
     let mut remaining_attempts = 5;
     let mut guessed: Vec<String> = vec![String::from("_"); guess_word.len()];
     println!("Siguiente palabra");
+    let mut bad_letters = HashMap::new();
+
     for _i in 0..5 {
         println!("Ingresa una letra");
         let input_letter = get_letter();
@@ -60,8 +64,10 @@ fn do_turn(guess_word: &String) {
             }
         }
 
-        if found == true {
+        if found {
             println!("Adivinaste las siguientes letras: {}", input_letter);
+        } else {
+            bad_letters.insert(input_letter, ());
         }
 
         if guessed.join("") == *guess_word {
@@ -70,6 +76,8 @@ fn do_turn(guess_word: &String) {
             break;
         } else if remaining_attempts == 1 {
             println!("Perdio. La palabra era {}", guess_word);
+            println!("Letras mal utilizadas");
+            print_wrong_characters(bad_letters);
             break;
         } else {
             println!("La palabra hasta el momento es: ");
