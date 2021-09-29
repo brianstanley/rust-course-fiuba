@@ -1,3 +1,4 @@
+mod game;
 /**
 El objetivo del ejercicio es implementar un programa de consola para jugar al ahorcado.
 
@@ -19,6 +20,9 @@ La lista de palabras se debe leer de un archivo de texto, donde cada línea del 
 
 El programa termina cuando se adivina correctamente la palabra pensada, o cuando se acabaron los intentos.
 
+Mostrar las letras que se ingresaron y que no forman parte de la palabra (las que hacen que se pierda un intento).
+
+Verificar si se ingresó nuevamente una letra que ya estaba.
  **/
 use std::collections::HashMap;
 use std::fs::File;
@@ -47,18 +51,23 @@ fn print_wrong_characters(hash_wrong_letters: &HashMap<char, ()>) -> () {
 }
 
 fn do_turn(guess_word: &String) {
-    let mut remaining_attempts = 5;
     let mut guessed: Vec<String> = vec![String::from("_"); guess_word.len()];
     println!("Siguiente palabra");
-    let mut bad_chars = HashMap::new();
+    let mut wrong_chars = HashMap::new();
     let mut used_chars = HashMap::new();
+    let mut ahorcado = game::game::Ahorcado::new(
+        guess_word,
+        5,
+        &mut wrong_chars,
+        &mut used_chars);
 
     for _i in 0..5 {
+        println!("turnos restantes: {}", ahorcado.remaining_attempts);
         println!("Ingresa una letra");
         let mut input_letter = get_letter();
         let mut found: bool = false;
 
-        while used_chars.contains_key(&input_letter) {
+        while ahorcado.used_chars.contains_key(&input_letter) {
             println!("La letra ingreada ya fue utilizada.");
             println!("Ingresa una letra");
             input_letter = get_letter();
@@ -71,33 +80,36 @@ fn do_turn(guess_word: &String) {
             }
         }
 
-        used_chars.insert(input_letter, ());
+        ahorcado.used_chars.insert(input_letter, ());
 
         if found {
             println!("Adivinaste las siguientes letras: {}", input_letter);
         } else {
-            bad_chars.insert(input_letter, ());
+            ahorcado.wrong_chars.insert(input_letter, ());
         }
 
         if guessed.join("") == *guess_word {
             println!("Usted adivino correctamente toda la palabra: ");
             print_word(&guessed);
             break;
-        } else if remaining_attempts == 1 {
-            println!("Perdio. La palabra era {}", guess_word);
+        } else if ahorcado.remaining_attempts == 1 {
+            println!("Perdio. La palabra era {}", ahorcado.word);
             println!("Letras mal utilizadas");
-            print_wrong_characters(&bad_chars);
+            print_wrong_characters(ahorcado.wrong_chars);
         } else {
             println!("La palabra hasta el momento es: ");
             print_word(&guessed);
         }
 
-        remaining_attempts = remaining_attempts - 1;
+        ahorcado.remaining_attempts = ahorcado.remaining_attempts - 1;
     }
 }
 
+
+
 fn main(){
     println!("Bienvenido al ahorcado de FIUBA!");
+
     let lines = read_lines("./palabras.txt");
 
     match lines {
