@@ -1,4 +1,4 @@
-pub mod game {
+pub mod game_mod {
     use std::collections::HashMap;
     use crate::error::GameError;
 
@@ -32,8 +32,8 @@ pub mod game {
 
     impl Ahorcado {
         pub fn new(word: String) -> Ahorcado {
-            let mut wrong_chars = HashMap::new();
-            let mut used_chars = HashMap::new();
+            let wrong_chars = HashMap::new();
+            let used_chars = HashMap::new();
             let stats: Stats = Stats{
                 guessed: vec![String::from("_"); word.len()],
                 status: GameStatus::Pending,
@@ -55,7 +55,7 @@ pub mod game {
             self.wrong_chars.insert(char, ());
         }
         pub(crate) fn substract_remaining_attempts(&mut self) {
-            self.remaining_attempts = self.remaining_attempts - 1;
+            self.remaining_attempts -= 1;
         }
         pub(crate) fn is_char_already_used(&self, char: &char) -> bool {
             self.used_chars.contains_key(char)
@@ -108,7 +108,7 @@ pub mod game {
 
             self.substract_remaining_attempts();
 
-            return Ok(&self.stats);
+            Ok(&self.stats)
         }
     }
 
