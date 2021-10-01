@@ -34,6 +34,18 @@ pub mod game {
         pub(crate) fn is_char_already_used(&self, char: &char) -> bool {
             self.used_chars.contains_key(char)
         }
+        pub(crate) fn can_play(&self) -> bool {
+            self.remaining_attempts > 1
+        }
+        pub(crate) fn get_remaining_attempts(&self) -> i32 {
+            self.remaining_attempts
+        }
+        pub(crate) fn get_word_to_guess(&self) -> &String {
+            self.word
+        }
+        pub(crate) fn get_wrong_chars(&self) -> &HashMap<char, ()> {
+            self.wrong_chars
+        }
     }
     
 }

@@ -56,7 +56,7 @@ fn play(ahorcado: &mut Ahorcado) {
     println!("Siguiente palabra");
 
     for _i in 0..5 {
-        println!("turnos restantes: {}", ahorcado.remaining_attempts);
+        println!("turnos restantes: {}", ahorcado.get_remaining_attempts());
         println!("Ingresa una letra");
         let mut input_letter = get_char();
         let mut found: bool = false;
@@ -67,7 +67,7 @@ fn play(ahorcado: &mut Ahorcado) {
             input_letter = get_char();
         }
 
-        for (i, c) in (ahorcado.word).chars().enumerate() {
+        for (i, c) in (ahorcado.get_word_to_guess()).chars().enumerate() {
             if c == input_letter {
                 found = true;
                 guessed[i] = c.to_string();
@@ -82,14 +82,14 @@ fn play(ahorcado: &mut Ahorcado) {
             ahorcado.add_wrong_char(input_letter);
         }
 
-        if guessed.join("") == *ahorcado.word {
+        if guessed.join("") == *ahorcado.get_word_to_guess() {
             println!("Usted adivino correctamente toda la palabra: ");
             print_word(&guessed);
             break;
-        } else if ahorcado.remaining_attempts == 1 {
-            println!("Perdio. La palabra era {}", ahorcado.word);
+        } else if !ahorcado.can_play() {
+            println!("Perdio. La palabra era {}", ahorcado.get_word_to_guess());
             println!("Letras mal utilizadas");
-            print_wrong_characters(ahorcado.wrong_chars);
+            print_wrong_characters(ahorcado.get_wrong_chars());
         } else {
             println!("La palabra hasta el momento es: ");
             print_word(&guessed);
