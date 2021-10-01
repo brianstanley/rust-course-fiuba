@@ -79,7 +79,7 @@ fn play(ahorcado: &mut Ahorcado) {
         if found {
             println!("Adivinaste las siguientes letras: {}", input_letter);
         } else {
-            ahorcado.wrong_chars.insert(input_letter, ());
+            ahorcado.add_wrong_char(input_letter);
         }
 
         if guessed.join("") == *ahorcado.word {
@@ -95,7 +95,7 @@ fn play(ahorcado: &mut Ahorcado) {
             print_word(&guessed);
         }
 
-        ahorcado.remaining_attempts = ahorcado.remaining_attempts - 1;
+        ahorcado.substract_remaining_attempts();
     }
 }
 

@@ -8,18 +8,6 @@ pub mod game {
         pub wrong_chars:&'a mut  HashMap<char, ()>
     }
 
-    impl<'a> Ahorcado<'a> {
-        pub(crate) fn use_char(&mut self, char: char) {
-            self.used_chars.insert(char, ());
-        }
-    }
-
-    impl<'a> Ahorcado<'a> {
-        pub(crate) fn is_char_already_used(&self, char: &char) -> bool {
-            self.used_chars.contains_key(char)
-        }
-    }
-
     impl Ahorcado <'_> {
         pub fn new<'a>(
             word: &'a String,
@@ -32,6 +20,19 @@ pub mod game {
                 used_chars,
                 wrong_chars
             }
+        }
+
+        pub(crate) fn use_char(&mut self, char: char) {
+            self.used_chars.insert(char, ());
+        }
+        pub(crate) fn add_wrong_char(&mut self, char: char) {
+            self.wrong_chars.insert(char, ());
+        }
+        pub(crate) fn substract_remaining_attempts(&mut self) {
+            self.remaining_attempts = self.remaining_attempts - 1;
+        }
+        pub(crate) fn is_char_already_used(&self, char: &char) -> bool {
+            self.used_chars.contains_key(char)
         }
     }
     
