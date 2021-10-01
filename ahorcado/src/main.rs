@@ -1,4 +1,6 @@
 mod game;
+mod error;
+
 /**
 El objetivo del ejercicio es implementar un programa de consola para jugar al ahorcado.
 
@@ -28,7 +30,8 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
-use crate::game::game::Ahorcado;
+use crate::error::GameError;
+use crate::game::game::{Ahorcado, GameStatus};
 
 fn get_char() -> char {
     let mut input = String::new();
@@ -46,57 +49,52 @@ fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
     Ok(io::BufReader::new(file).lines())
 }
 
-fn print_wrong_characters(hash_wrong_letters: &HashMap<char, ()>) -> () {
-    let characters = hash_wrong_letters.keys().map(|s| s.to_string()).collect::<Vec<_>>().join(", ");
+fn print_wrong_characters(hash_wrong_chars: &HashMap<char, ()>) -> () {
+    let characters = hash_wrong_chars.keys().map(|s| s.to_string()).collect::<Vec<_>>().join(", ");
     println!("{}", characters);
 }
 
-fn play(ahorcado: &mut Ahorcado) {
-    let mut guessed: Vec<String> = vec![String::from("_"); ahorcado.word.len()];
-    println!("Siguiente palabra");
 
-    for _i in 0..5 {
+fn play(ahorcado: &mut Ahorcado) {
+
+    loop {
         println!("turnos restantes: {}", ahorcado.get_remaining_attempts());
         println!("Ingresa una letra");
-        let mut input_letter = get_char();
-        let mut found: bool = false;
-
-        while ahorcado.is_char_already_used(&input_letter) {
-            println!("La letra ingreada ya fue utilizada.");
-            println!("Ingresa una letra");
-            input_letter = get_char();
-        }
-
-        for (i, c) in (ahorcado.get_word_to_guess()).chars().enumerate() {
-            if c == input_letter {
-                found = true;
-                guessed[i] = c.to_string();
+        let mut input_char = get_char();
+        let mut game = ahorcado.play(input_char);
+        match &game  {
+                Ok(stats) => {
+                    match stats.status {
+                        GameStatus::Success => {
+                            println!("Felicitaciones adivino la palabra");
+                            println!("La palabra era: {}", ahorcado.word);
+                            break;
+                        }
+                        GameStatus::Pending => {
+                            println!("Mal!!.");
+                        }
+                        GameStatus::GameOver => {
+                            println!("Game over");
+                            break;
+                        }
+                        GameStatus::CharGuessed => {
+                            println!("Adivino la siguiente letra: {}", stats.guessed_char);
+                            println!("La palabra hasta ahora es: {}", stats.get_guessed_word());
+                        }
+                    }
+                },
+                Err(e) => {
+                    match e {
+                        GameError::NoChancesAvailable => {
+                            eprintln!("Error: {}", e);
+                            break;
+                        },
+                        GameError::CharacterIsAlreadyUsed => eprintln!("Error: {}", e),
+                    }
+                }
             }
-        }
-
-        ahorcado.use_char(input_letter);
-
-        if found {
-            println!("Adivinaste las siguientes letras: {}", input_letter);
-        } else {
-            ahorcado.add_wrong_char(input_letter);
-        }
-
-        if guessed.join("") == *ahorcado.get_word_to_guess() {
-            println!("Usted adivino correctamente toda la palabra: ");
-            print_word(&guessed);
-            break;
-        } else if !ahorcado.can_play() {
-            println!("Perdio. La palabra era {}", ahorcado.get_word_to_guess());
-            println!("Letras mal utilizadas");
-            print_wrong_characters(ahorcado.get_wrong_chars());
-        } else {
-            println!("La palabra hasta el momento es: ");
-            print_word(&guessed);
-        }
-
-        ahorcado.substract_remaining_attempts();
     }
+
 }
 
 fn main(){
@@ -108,13 +106,7 @@ fn main(){
         Ok(lines) => {
             for line in lines {
                 if let Ok(guess_word) = line {
-                    let mut wrong_chars = HashMap::new();
-                    let mut used_chars = HashMap::new();
-                    let mut ahorcado = game::game::Ahorcado::new(
-                        &guess_word,
-                        5,
-                        &mut wrong_chars,
-                        &mut used_chars);
+                    let mut ahorcado = game::game::Ahorcado::new(guess_word);
                     play(&mut ahorcado);
                 }
             }
