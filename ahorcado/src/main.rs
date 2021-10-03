@@ -55,7 +55,6 @@ fn print_wrong_characters(hash_wrong_chars: &HashMap<char, ()>) {
 
 
 fn play(ahorcado: &mut Ahorcado) {
-
     loop {
         println!("turnos restantes: {}", ahorcado.get_remaining_attempts());
         println!("Ingresa una letra");
